@@ -47,19 +47,29 @@
 <script>
     const textBox = document.getElementById('text-box');
     const status = document.getElementById('status');
-    const params = new URLSearchParams(window.location.search);
-
-    // Get "text" from URL
-    const initialText = params.get('text');
-    if (initialText) {
-        textBox.value = initialText;
+    
+    // 1. Get the raw URL string (e.g., ?text=Name:+John)
+    const queryString = window.location.search;
+    
+    // 2. Use a custom way to grab 'text=' that doesn't break plus signs
+    const getQueryParam = (name) => {
+        const results = new RegExp('[\?&]' + name + '=([^&#]*)').exec(queryString);
+        if (!results) return null;
+        // decodeURIComponent handles special characters but keeps + as + if encoded correctly, 
+        // or we manually ensure + is preserved.
+        return decodeURIComponent(results[1].replace(/\+/g, ' ')); 
+    };
+    
+    // Actually, to keep PLUS as PLUS without encoding, we use this:
+    const rawText = queryString.split('text=')[1];
+    if (rawText) {
+        // Decodes everything EXCEPT turning + into space
+        textBox.value = decodeURIComponent(rawText);
     }
-
+    
     function copyText() {
         textBox.select();
         navigator.clipboard.writeText(textBox.value);
-        
-        // Visual feedback
         status.style.display = 'inline';
         setTimeout(() => { status.style.display = 'none'; }, 2000);
     }
